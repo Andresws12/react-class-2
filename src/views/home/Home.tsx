@@ -7,8 +7,16 @@ interface HomeProps {
   // Add type annotations for props
 }
 
-const Home: React.FC<HomeProps> = props => {
-  const data = [
+interface UserData {
+  id: number;
+  name: string;
+  lastName: string;
+  age: number;
+  description: string;
+}
+
+const Home: React.FC<HomeProps> = () => {
+  const data: UserData[] = [
     {
       id: 1,
       name: 'John',
@@ -46,24 +54,55 @@ const Home: React.FC<HomeProps> = props => {
     },
   ];
 
-  console.log(props);
+  const [counter, setCounter] = React.useState<number>(data.length);
+
+  const sum = () => {
+    if (counter < data.length) {
+      setCounter(counter + 1);
+    }
+  };
+
+  const rest = () => {
+    if (counter > 0) {
+      setCounter(counter - 1);
+    }
+  };
+
+  const reset = () => setCounter(data.length);
 
   return (
     <>
       <Layout>
         <section className="section">
-          <div className="container columns is-multiline is-centered">
-            {data.map(user => (
-              <div className="column is-4 p-3">
-                <UserCard
-                  key={user.id}
-                  name={user.name}
-                  lastName={user.lastName}
-                  description={user.description}
-                  age={user.age}
-                ></UserCard>
-              </div>
-            ))}
+          <div className="container mb-4">
+            <h1 className="title">Contador</h1>
+            <span>Numero de cards a enseñar: {counter} </span>
+            <div>
+              <button className="button is-primary mr-1 ml-1" onClick={sum}>
+                Sumar
+              </button>
+              <button className="button is-warning mr-1 ml-1" onClick={reset}>
+                Resetear
+              </button>
+              <button className="button is-danger mr-1 ml-1" onClick={rest}>
+                Restar
+              </button>
+            </div>
+          </div>
+          <div className="container">
+            <div className="columns is-multiline is-centered">
+              {data.slice(0, counter).map(user => (
+                <div className="column is-4 p-3">
+                  <UserCard
+                    key={user.id}
+                    name={user.name}
+                    lastName={user.lastName}
+                    description={user.description}
+                    age={user.age}
+                  ></UserCard>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </Layout>
