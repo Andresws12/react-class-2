@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
 import Layout from '../../components/layout/Layout';
 import UserCard from '../../components/home/UserCard';
@@ -7,106 +7,84 @@ interface HomeProps {
   // Add type annotations for props
 }
 
-interface UserData {
-  id: number;
+interface PokemonData {
   name: string;
-  lastName: string;
-  age: number;
-  description: string;
+  url: string;
 }
 
 const Home: React.FC<HomeProps> = () => {
-  const data: UserData[] = [
-    {
-      id: 1,
-      name: 'John',
-      lastName: 'Doe',
-      age: 25,
-      description: 'Lorem ipsum',
-    },
-    {
-      id: 2,
-      name: 'Jane',
-      lastName: 'Smith',
-      age: 30,
-      description: 'Lorem ipsum',
-    },
-    {
-      id: 3,
-      name: 'Bob',
-      lastName: 'Johnson',
-      age: 35,
-      description: 'Lorem ipsum',
-    },
-    {
-      id: 4,
-      name: 'Alice',
-      lastName: 'Williams',
-      age: 40,
-      description: 'Lorem ipsum',
-    },
-    {
-      id: 5,
-      name: 'Mike',
-      lastName: 'Brown',
-      age: 45,
-      description: 'Lorem ipsum',
-    },
-  ];
-
-  const [counter, setCounter] = React.useState<number>(data.length);
+  const [pokemonData, setPokemonData] = useState<PokemonData[]>([]);
+  const [counter, setCounter] = useState<number>(10);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const sum = () => {
-    if (counter < data.length) {
-      setCounter(counter + 1);
-    }
+    setCounter(prevCounter => prevCounter + 1);
   };
 
   const rest = () => {
     if (counter > 0) {
-      setCounter(counter - 1);
+      setCounter(prevCounter => prevCounter - 1);
     }
   };
 
-  const reset = () => setCounter(data.length);
+  const reset = () => setCounter(10);
+
+  const getPokemons = useCallback(async () => {
+    setIsLoading(true); // Set loading state to true
+    const response = await fetch(
+      `https://pokeapi.co/api/v2/pokemon?offset=${counter}&limit=${counter}`
+    );
+    const pokemonResponse = await response.json();
+    setPokemonData(pokemonResponse.results);
+    setIsLoading(false); // Set loading state to false
+    return pokemonResponse.results;
+  }, [counter]);
+
+  useEffect(() => {
+    getPokemons();
+  }, [counter, getPokemons]);
 
   return (
-    <>
-      <Layout>
-        <section className="section">
-          <div className="container mb-4">
-            <h1 className="title">Contador</h1>
-            <span>Numero de cards a enseñar: {counter} </span>
-            <div>
-              <button className="button is-primary mr-1 ml-1" onClick={sum}>
-                Sumar
-              </button>
-              <button className="button is-warning mr-1 ml-1" onClick={reset}>
-                Resetear
-              </button>
-              <button className="button is-danger mr-1 ml-1" onClick={rest}>
-                Restar
-              </button>
-            </div>
+    <Layout>
+      <section className="section">
+        <div className="container mb-4">
+          <h1 className="title">Counter</h1>
+          <span>Number of cards to show: {counter} </span>
+          <div>
+            <button className="button is-primary mr-1 ml-1" onClick={sum}>
+              Add
+            </button>
+            <button className="button is-warning mr-1 ml-1" onClick={reset}>
+              Reset
+            </button>
+            <button className="button is-danger mr-1 ml-1" onClick={rest}>
+              Subtract
+            </button>
+            <button
+              className="button is-danger mr-1 ml-1"
+              onClick={getPokemons}
+            >
+              Get pokemons
+            </button>
           </div>
-          <div className="container">
+        </div>
+        <div className="container">
+          {isLoading ? (
+            <div className="has-text-centered">
+              <p>Loading...</p>
+            </div>
+          ) : (
             <div className="columns is-multiline is-centered">
-              {data.slice(0, counter).map(user => (
-                <div className="column is-4 p-3">
-                  <UserCard
-                    key={user.id}
-                    name={user.name}
-                    lastName={user.lastName}
-                    description={user.description}
-                    age={user.age}
-                  ></UserCard>
+              {pokemonData.slice(0, counter).map((pokemon, index) => (
+                <div className="column is-4 p-3" key={index}>
+                  <UserCard name={pokemon.name} url={pokemon.url} />
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-      </Layout>
-    </>
+          )}
+        </div>
+      </section>
+    </Layout>
   );
 };
 

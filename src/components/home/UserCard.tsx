@@ -1,56 +1,67 @@
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
-interface BannerProps {
+interface UserCardProps {
   name: string;
-  lastName: string;
-  description: string;
-  age: number;
+  url: string;
 }
 
-const Banner: React.FC<BannerProps> = ({
-  name,
-  lastName,
-  description,
-  age,
-}) => {
+interface Pokemon {
+  sprites: {
+    front_default: string;
+  };
+  types: {
+    type: {
+      name: string;
+    };
+  }[];
+}
+
+const UserCard: React.FC<UserCardProps> = ({ name, url }) => {
+  const [pokemon, setPokemon] = useState<Pokemon | undefined>(undefined);
+
+  const fetchPokemon = useCallback(async () => {
+    try {
+      const response = await fetch(url);
+      const pokemonData = await response.json();
+      setPokemon(pokemonData);
+    } catch (error) {
+      console.error('Failed to fetch Pokemon:', error);
+    }
+  }, [url]);
+
+  useEffect(() => {
+    fetchPokemon();
+  }, [fetchPokemon]);
+
   return (
     <div className="card">
-      <div className="card-image">
-        <figure className="image is-4by3">
-          <img
-            src="https://bulma.io/images/placeholders/1280x960.png"
-            width="960"
-            alt="Placeholder"
-            title="Placeholder image"
-          />
-        </figure>
-      </div>
       <div className="card-content">
         <div className="media">
           <div className="media-left">
             <figure className="image is-48x48">
               <img
-                src="https://bulma.io/images/placeholders/96x96.png"
+                src={pokemon?.sprites?.front_default}
                 width="96"
-                alt="Placeholder"
-                title="Placeholder image"
+                alt="Pokemon"
+                title="Pokemon"
               />
             </figure>
           </div>
           <div className="media-content">
             <p className="title is-4">{name}</p>
-            <p className="subtitle is-6">{lastName}</p>
           </div>
         </div>
 
         <div className="content">
-          {description}
-          <br />
-          {age} years
+          <p>
+            {pokemon?.types.map((type: { type: { name: string } }) => (
+              <span key={type.type.name}>{type.type.name}/</span>
+            ))}
+          </p>
         </div>
       </div>
     </div>
   );
 };
 
-export default Banner;
+export default UserCard;
